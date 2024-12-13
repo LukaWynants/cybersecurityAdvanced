@@ -13,31 +13,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-    - name: Install dependencies
-      run: |
-        python -m venv venv
-        . venv/bin/activate
-        pip install -r requirements.txt || echo "No requirements"
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          . venv/bin/activate
+          pip install -r requirements.txt || echo "No requirements"
 
-    - name: Static Analysis with Bandit
-      run: |
-        pip install bandit
-        bandit -r .
+      - name: Static Analysis with Bandit
+        run: |
+          pip install bandit
+          bandit -r .
 
-    - name: Dependency Check with Safety
-      run: |
-        pip install safety
-        safety check
+      - name: Dependency Check with Safety
+        run: |
+          pip install safety
+          safety check
 
-    - name: Secret Scanning with TruffleHog
-      run: |
-        pip install truffleHog
-        trufflehog --json .
+      - name: Secret Scanning with TruffleHog
+        run: |
+          pip install truffleHog
+          trufflehog --json .
+
+      # Fail if any previous step (SAST, dependency check, secret scanning) finds issues
+      - name: Fail if warnings are found
+        run: exit 1 # This will force the workflow to fail if it reaches this step
+        if: failure()  # This ensures it runs only if a previous step failed
